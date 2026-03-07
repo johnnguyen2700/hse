@@ -9,7 +9,6 @@
   <link rel="preload" href="audio.mp3" as="audio" type="audio/mpeg" />
   <style>
     :root{
-      /* Sử dụng chuẩn xác định dạng file bạn tải lên */
       --letter-frame: url('letter-frame.png');
       --flower-hand: url('flower-hand.png');
       --rose:#d86a66;
@@ -24,7 +23,6 @@
       margin:0;
       overflow:hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      /* Background toàn cục để cả 2 màn hình đều có chung nền tối */
       background:
         radial-gradient(1200px 900px at 30% 18%, #1a0f2a 0%, rgba(26,15,42,.25) 36%, transparent 56%),
         radial-gradient(1200px 900px at 82% 24%, #2b0c28 0%, rgba(43,12,40,.22) 34%, transparent 54%),
@@ -35,7 +33,6 @@
     button{font:inherit}
     img{max-width:100%;display:block}
 
-    /* Các canvas hiệu ứng dùng chung cho cả trang */
     #starsCanvas, #petalsCanvas{
       position:fixed;
       inset:0;
@@ -65,9 +62,7 @@
       pointer-events:none;
     }
 
-    #introHaze{
-      display: none; /* Đã xoá sương mờ */
-    }
+    #introHaze{ display: none; }
 
     #letterStage{
       position:absolute;
@@ -95,10 +90,7 @@
       pointer-events:auto;
     }
 
-    /* Đã xoá bóng quầng sáng phía sau bức thư */
-    .letter-glow{
-      display: none;
-    }
+    .letter-glow{ display: none; }
 
     #envelopeWrap{
       position:absolute;
@@ -109,11 +101,7 @@
       transform:translate(-50%, -50%);
       isolation:isolate;
     }
-
-    /* Đã xoá bóng dưới phong bì */
-    #envelopeWrap::after{
-      display: none;
-    }
+    #envelopeWrap::after{ display: none; }
 
     .env-layer{
       position:absolute;
@@ -302,7 +290,6 @@
       width:min(33vw, 280px);
       aspect-ratio: 0.76 / 1;
       z-index:12;
-      /* Khôi phục nguyên gốc CSS chuẩn để hiển thị ảnh hoa không bị lỗi */
       background:var(--flower-hand) center bottom/contain no-repeat;
       border:none;
       cursor:pointer;
@@ -384,19 +371,20 @@
 
     #texts{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden}
 
-    /* ĐÃ SỬA: Loại bỏ bẻ chữ, chữ sẽ luôn nằm gọn trên 1 hàng không bị tách (nowrap) */
+    /* Đã tinh chỉnh để hỗ trợ Transform 3D */
     .wish-item{
       position:absolute;
       left:0; top:0;
       text-align: center;
-      white-space: nowrap; /* Không bị tách chữ/xuống dòng */
+      white-space: nowrap; 
       color:rgba(255,175,224,.98);
       text-shadow:0 0 8px rgba(255,111,180,.7), 0 0 18px rgba(255,111,180,.44);
       letter-spacing:.2px;
       opacity:0;
       transition: opacity 0.8s ease;
-      will-change: transform;
+      will-change: transform, opacity, filter;
       padding: 10px; 
+      transform-origin: left top; /* Giữ tọa độ chuẩn xác để tránh tràn viền */
     }
 
     #musicChip{
@@ -531,89 +519,43 @@
       let pointerDown = false;
       let lastPointerX = 0;
       const margin = 10;
-      const textDelayMs = 300; // thời gian trì hoãn khi vào không gian lời chúc
-      const wishWarmupMs = 700; // làm mượt giai đoạn mới spawn
-      const wishFallSpeed = 3.4;
-      const laneVerticalGap = 32;
+      const textDelayMs = 300; 
+      const wishWarmupMs = 700; 
+      
+      // Đã tinh chỉnh tốc độ chậm, đều vừa phải
+      const wishFallSpeed = 1.6;
+      
       let wishFontSizePx = 32;
       let wishLetterSpacingPx = 0.2;
       
       let stars = [];
       let petals = [];
       let physicsWishes = [];
-      let laneCount = 2;
-      let laneTopY = [];
-      let laneCursor = 0;
 
       const letterParagraphs = [
         'Nhân ngày Quốc tế Phụ nữ 8/3, anh em sinh viên HSE xin gửi tới hội chị em những lời chúc dịu dàng và chân thành nhất.',
-        'Chúc chị em luôn xinh đẹp, tự tin, học tập thật tốt, vui vẻ mỗi ngày và luôn gặp thật nhiều may mắn trên chặng đường của mình.',
+        'Chúc chị em luôn xinh đẹp, tự tự, học tập thật tốt, vui vẻ mỗi ngày và luôn gặp thật nhiều may mắn trên chặng đường của mình.',
         'Cảm ơn chị em vì đã làm cho thanh xuân ở HSE trở nên rực rỡ hơn, ấm áp hơn và đáng nhớ hơn rất nhiều.',
         'Mong rằng ngày hôm nay và cả những ngày sau đó, chị em luôn được yêu thương, trân trọng và hạnh phúc theo cách riêng của mình.'
       ];
       const signature = '— Anh em sinh viên HSE 💖';
 
       const wishes = [
-        'Luôn luôn xinh đẹp và hạnh phúc',
-        'Danh Nguyễn Trà My',
-        'Phạm Mai Phương Hà',
-        'Lê Ngọc Thủy',
-        'Luôn tươi trẻ và thi cử lúc nào cũng "học ít điểm cao"',
-        'Triệu Ngọc Minh Thu',
-        'Phạm Hồng Minh',
-        'Trịnh Thị Hiền Trang',
-        'Deadline nhìn cũng phải "né"',
-        'Dương Thùy My',
-        'Nguyễn Trà My',
-        'Nguyễn Hoàng Vân',
-        'Học hành mượt như lướt "TikTok"',
-        'Phan Thị Cẩm Ly',
-        'Nguyễn Ngọc Khoá',
-        'Lưu Thị Thu Giang',
-        'Mọi việc đều thuận buồm xuôi gió',
-        'Đỗ Vũ Minh Nguyệt',
-        'Nguyễn Thị Thúy',
-        'Đỗ Thị Hiền',
-        '8386 mãi đỉnh',
-        'Phan Tuyết Băng',
-        'Trần Thị Ngân',
-        'Nguyễn Khánh Vân',
-        'Tiền vào như nước',
-        'Phùng Thị Khánh Huyền',
-        'Nguyễn Ngọc Lan Christina',
-        'Cao Thị Khánh Xuân',
-        'Đi ăn không phải xếp hàng :))',
-        'Lâm Thị Hồng Ngọc',
-        'Nguyễn Phương Anh',
-        'Nguyễn Bích Ngọc',
-        'Lúc nào cũng đầy năng lượng',
-        'Nguyễn Ngọc Bảo Hân',
-        'Nguyễn Hà Trâm',
-        'Cao Thị Thương',
-        'Mọi dự định đều thành công',
-        'Phạm Thu Trang',
-        'Hà Thị Ngọc Quyên',
-        'Nguyễn Diệu Ngân',
-        'Nỗ lực luôn được đền đáp xứng đáng',
-        'Nguyễn Thị Thanh Thảo',
-        'Đào Trâm Anh',
-        'Lê Hồng Ánh',
-        'Sống nhẹ nhàng và bình yên',
-        'Nguyễn Thương Huyền',
-        'Nguyễn Mỹ Hòa',
-        'Nguyễn Kim Ngân',
-        'Cuộc sông muôn màu ý nghĩa',
-        'Đỗ Thị Hải Yến',
-        'Nguyễn Trần Thùy Dương',
-        'Trần Thu Ngân',
-        'Luôn thành công và tỏa sáng',
-        'Nguyễn Phương Quỳnh Anh',
-        'Nguyễn Phương Thuỳ Anh',
-        'Bùi Bảo Anh',
-        'Luôn tự tin theo đuổi ước mơ',
-        'Nguyễn Kiều Trang',
-        'Mai Thuỳ Linh',
-        'Hoàng Châu Anh',
+        'Luôn luôn xinh đẹp và hạnh phúc', 'Danh Nguyễn Trà My', 'Phạm Mai Phương Hà', 'Lê Ngọc Thủy',
+        'Luôn tươi trẻ và thi cử lúc nào cũng "học ít điểm cao"', 'Triệu Ngọc Minh Thu', 'Phạm Hồng Minh',
+        'Trịnh Thị Hiền Trang', 'Deadline nhìn cũng phải "né"', 'Dương Thùy My', 'Nguyễn Trà My',
+        'Nguyễn Hoàng Vân', 'Học hành mượt như lướt "TikTok"', 'Phan Thị Cẩm Ly', 'Nguyễn Ngọc Khoá',
+        'Lưu Thị Thu Giang', 'Mọi việc đều thuận buồm xuôi gió', 'Đỗ Vũ Minh Nguyệt', 'Nguyễn Thị Thúy',
+        'Đỗ Thị Hiền', '8386 mãi đỉnh', 'Phan Tuyết Băng', 'Trần Thị Ngân', 'Nguyễn Khánh Vân',
+        'Tiền vào như nước', 'Phùng Thị Khánh Huyền', 'Nguyễn Ngọc Lan Christina', 'Cao Thị Khánh Xuân',
+        'Đi ăn không phải xếp hàng :))', 'Lâm Thị Hồng Ngọc', 'Nguyễn Phương Anh', 'Nguyễn Bích Ngọc',
+        'Lúc nào cũng đầy năng lượng', 'Nguyễn Ngọc Bảo Hân', 'Nguyễn Hà Trâm', 'Cao Thị Thương',
+        'Mọi dự định đều thành công', 'Phạm Thu Trang', 'Hà Thị Ngọc Quyên', 'Nguyễn Diệu Ngân',
+        'Nỗ lực luôn được đền đáp xứng đáng', 'Nguyễn Thị Thanh Thảo', 'Đào Trâm Anh', 'Lê Hồng Ánh',
+        'Sống nhẹ nhàng và bình yên', 'Nguyễn Thương Huyền', 'Nguyễn Mỹ Hòa', 'Nguyễn Kim Ngân',
+        'Cuộc sông muôn màu ý nghĩa', 'Đỗ Thị Hải Yến', 'Nguyễn Trần Thùy Dương', 'Trần Thu Ngân',
+        'Luôn thành công và tỏa sáng', 'Nguyễn Phương Quỳnh Anh', 'Nguyễn Phương Thuỳ Anh', 'Bùi Bảo Anh',
+        'Luôn tự tin theo đuổi ước mơ', 'Nguyễn Kiều Trang', 'Mai Thuỳ Linh', 'Hoàng Châu Anh',
         'Một ngày 8/3 thật ý nghĩa và trọn vẹn 🌸'
       ];
 
@@ -625,34 +567,8 @@
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       }
 
-      function recalcLanes(resetTop = false) {
-        if (W < 560) laneCount = 2;
-        else if (W < 1280) laneCount = 3;
-        else laneCount = 3;
-        if (laneTopY.length !== laneCount || resetTop) {
-          laneTopY = Array.from({length: laneCount}, (_, i) => -40 - i * 50 - Math.random() * 120);
-        }
-      }
-
-      function clampX(x, w) {
-        const minX = margin;
-        const maxX = Math.max(margin, W - w - margin);
-        return Math.max(minX, Math.min(maxX, x));
-      }
-
-      function laneBaseX(lane, w) {
-        const safeLane = Math.max(0, Math.min(laneCount - 1, lane));
-        const laneWidth = W / laneCount;
-        const laneInset = Math.max(6, Math.min(18, laneWidth * 0.07));
-        const left = safeLane * laneWidth + laneInset;
-        const right = (safeLane + 1) * laneWidth - laneInset;
-        const center = (left + right) * 0.5;
-        return clampX(center - w * 0.5, w);
-      }
-
       function recomputeWishTextStyle() {
-        const laneWidth = W / Math.max(1, laneCount);
-        const maxWidth = Math.max(148, Math.min(W - margin * 2, laneWidth - 14));
+        const maxWidth = Math.max(200, W * 0.85);
         const probe = document.createElement('span');
         probe.className = 'wish-item';
         probe.style.position = 'absolute';
@@ -722,17 +638,16 @@
         setCanvasSize(starsCanvas, starCtx);
         setCanvasSize(petalsCanvas, petalsCtx);
         initStars();
-        recalcLanes();
         if(petals.length === 0) initPetals();
+        recomputeWishTextStyle();
         if (physicsWishes.length > 0) {
           physicsWishes.forEach((wishObj) => {
             fitWishToViewport(wishObj);
-            wishObj.lane = Math.max(0, Math.min(laneCount - 1, wishObj.lane || 0));
-            wishObj.baseX = laneBaseX(wishObj.lane, wishObj.w);
-            wishObj.x = clampX(wishObj.baseX, wishObj.w);
-            wishObj.y = Math.max(-wishObj.h - 40, Math.min(H + wishObj.h + 40, wishObj.y));
+            let safeW = wishObj.w * wishObj.scale;
+            let maxX = Math.max(margin, W - safeW - margin);
+            wishObj.baseX = Math.max(margin, Math.min(maxX, wishObj.baseX));
+            wishObj.x = wishObj.baseX;
             wishObj.renderX = wishObj.x;
-            wishObj.renderY = wishObj.y;
           });
         }
       }
@@ -863,7 +778,6 @@
           return;
         }
         unlockPromise.then(() => {
-          // Chỉ dừng nếu vẫn đang ở chế độ prime (muted).
           if (audioEl.muted) {
             audioEl.pause();
             audioEl.currentTime = 0;
@@ -909,14 +823,13 @@
         }
       });
 
-      // KHỞI TẠO CÁC LỜI CHÚC (Thả từ từ sau 0.5 giây)
+      // THUẬT TOÁN DROP SCENE MỚI ĐÃ ĐƯỢC CHUYỂN SANG 3D
       function initFloatingWishes() {
         textsContainer.innerHTML = '';
         physicsWishes = [];
-        recalcLanes(true);
-        laneCursor = 0;
         let spawnIndex = 0;
 
+        // Sinh liên tục chữ nhanh hơn để lấp đầy màn hình tạo hiệu ứng 3D
         const spawnTimer = setInterval(() => {
           if (spawnIndex >= wishes.length) {
             clearInterval(spawnTimer);
@@ -933,75 +846,87 @@
 
           const physicsObj = {
             el,
-            lane: laneCursor % laneCount,
-            x: 0,
-            y: 0,
-            baseX: 0,
-            vy: wishFallSpeed,
-            drift: 4 + Math.random() * 6,
+            x: 0, y: 0,
+            baseX: 0, vy: 0, drift: 0,
             phase: Math.random() * Math.PI * 2,
-            renderX: 0,
-            renderY: 0,
+            renderX: 0, renderY: 0,
             bornAt: performance.now(),
-            nextRefitAt: performance.now() + 1200,
-            w: 0,
-            h: 0
+            w: 0, h: 0,
+            z: 1, scale: 1, baseOpacity: 1
           };
-          laneCursor++;
           physicsWishes.push(physicsObj);
 
           requestAnimationFrame(() => {
             fitWishToViewport(physicsObj);
-            resetWish(physicsObj, true);
-            el.style.opacity = 0.9 + Math.random() * 0.1;
+            resetWish(physicsObj, true, true);
+            el.style.opacity = physicsObj.baseOpacity;
           });
 
           spawnIndex++;
-        }, 420); 
+        }, 150); 
       }
 
       function fitWishToViewport(target) {
-        const wishObj = target && target.el ? target : null;
-        const el = wishObj ? wishObj.el : target;
-        if (!el) return;
+        if (!target || !target.el) return;
+        const el = target.el;
         el.style.fontSize = wishFontSizePx + 'px';
         el.style.letterSpacing = wishLetterSpacingPx.toFixed(1) + 'px';
-        el.style.maxWidth = 'none';
-        el.style.overflow = 'visible';
-        el.style.textOverflow = 'clip';
-        if (wishObj) {
-          const rect = el.getBoundingClientRect();
-          wishObj.w = rect.width;
-          wishObj.h = rect.height;
-          wishObj.lane = Math.max(0, Math.min(laneCount - 1, wishObj.lane || 0));
-          wishObj.baseX = laneBaseX(wishObj.lane, wishObj.w);
-          if (Number.isFinite(wishObj.x)) wishObj.x = clampX(wishObj.x, wishObj.w);
-          if (Number.isFinite(wishObj.renderX)) wishObj.renderX = clampX(wishObj.renderX, wishObj.w);
-        }
+        
+        // Lấy chính xác kích thước gốc chưa transform
+        const oldTrans = el.style.transform;
+        el.style.transform = 'none';
+        target.w = el.offsetWidth;
+        target.h = el.offsetHeight;
+        el.style.transform = oldTrans;
       }
 
-      function resetWish(obj, fromTop = false) {
-        obj.lane = Math.max(0, Math.min(laneCount - 1, obj.lane || 0));
-        obj.baseX = laneBaseX(obj.lane, obj.w);
-        obj.phase = Math.random() * Math.PI * 2;
-        obj.drift = 4 + Math.random() * 6;
-        obj.vy = wishFallSpeed;
-        obj.x = clampX(obj.baseX, obj.w);
+      function resetWish(obj, fromTop = false, isInit = false) {
+        // Khởi tạo chiều sâu Z (từ xa tới gần)
+        obj.z = 0.35 + Math.random() * 1.05; // ~0.35 đến 1.4
+        obj.scale = obj.z;
+        
+        // Các chữ ở xa mờ hơn
+        obj.baseOpacity = 0.15 + (obj.z - 0.35) * 0.75;
+        if (obj.baseOpacity > 1) obj.baseOpacity = 1;
 
+        // Tốc độ rơi thuận theo kích cỡ (Hiệu ứng Parallax: Rõ rơi nhanh, Xa rơi chậm)
+        obj.vy = (wishFallSpeed + Math.random() * 0.6) * obj.z;
+        
+        obj.phase = Math.random() * Math.PI * 2;
+        obj.drift = (1 + Math.random() * 2.5) * obj.z;
+
+        // Phân bổ X tự do trên toàn màn hình với bộ tính toán không cho chạm viền
+        let safeW = obj.w * obj.scale;
+        let minX = margin;
+        let maxX = Math.max(margin, W - safeW - margin);
+        
+        obj.baseX = minX + Math.random() * (maxX - minX);
+        obj.x = obj.baseX;
+
+        // Điểm rơi ngẫu nhiên liên tục
         if (fromTop) {
-          laneTopY[obj.lane] -= obj.h + laneVerticalGap + 18 + Math.random() * 22;
-          obj.y = laneTopY[obj.lane];
-          if (laneTopY[obj.lane] < -H * 1.8) {
-            laneTopY[obj.lane] = -40 - Math.random() * 160;
+          if (isInit) {
+             obj.y = Math.random() * H * 0.9 - H * 0.1; // Khởi tạo rải rác khắp màn hình
+          } else {
+             obj.y = -obj.h * obj.scale - 40 - Math.random() * 100;
           }
         } else {
-          obj.y = Math.random() * (H * 0.25);
+          obj.y = Math.random() * H;
         }
 
         obj.renderX = obj.x;
         obj.renderY = obj.y;
         obj.bornAt = performance.now();
-        obj.nextRefitAt = obj.bornAt + 1200;
+        
+        // Sắp xếp z-index tự động để chữ to che chữ bé hợp lý
+        obj.el.style.zIndex = Math.floor(obj.z * 100);
+        
+        // Thêm độ nhòe camera cho các dòng chữ ở xa
+        if (obj.z < 0.6) {
+          obj.el.style.filter = `blur(${(0.6 - obj.z) * 4}px)`;
+        } else {
+          obj.el.style.filter = 'none';
+        }
       }
 
       function updatePhysicsWishes(dt) {
@@ -1011,49 +936,43 @@
 
         physicsWishes.forEach(a => {
           if (a.w === 0) return;
-          const inWarmup = nowTs - a.bornAt < wishWarmupMs;
-          if (!a.nextRefitAt || nowTs >= a.nextRefitAt) {
-            fitWishToViewport(a);
-            a.baseX = laneBaseX(a.lane, a.w);
-            a.x = clampX(a.x, a.w);
-            a.renderX = clampX(a.renderX, a.w);
-            a.nextRefitAt = nowTs + 1200;
-          }
-
-          a.phase += dt * 0.0012;
+          
+          a.phase += timeScale * 0.015;
           const driftX = Math.sin(a.phase) * a.drift;
-          const windInfluence = windX * (inWarmup ? 0.00001 : 0.00002) * timeScale;
-          a.x = clampX(a.baseX + driftX + windInfluence, a.w);
+          const windInfluence = windX * 0.000015 * timeScale;
+          
+          a.baseX += windInfluence;
+          
+          let safeW = a.w * a.scale;
+          let maxX = Math.max(margin, W - safeW - margin);
+          if (a.baseX < margin) a.baseX = margin;
+          if (a.baseX > maxX) a.baseX = maxX;
+          
+          a.x = a.baseX + driftX;
+          a.x = Math.max(margin, Math.min(maxX, a.x));
+          
           a.y += a.vy * timeScale;
 
-          if (a.y > H + a.h + 20) {
-            resetWish(a, true);
-            a.el.style.opacity = 0.9 + Math.random() * 0.1;
+          // Rơi qua màn hình thì quay lại từ trên xuống - rơi liên tục
+          if (a.y > H + a.h * a.scale + 20) {
+            resetWish(a, true, false);
+            a.el.style.opacity = a.baseOpacity;
           }
         });
-
-        // Giữ khoảng cách dọc trong từng lane để chữ không dính nhau
-        for (let lane = 0; lane < laneCount; lane++) {
-          const laneItems = physicsWishes.filter(item => item.w > 0 && item.lane === lane).sort((a, b) => a.y - b.y);
-          for (let i = 1; i < laneItems.length; i++) {
-            const prev = laneItems[i - 1];
-            const curr = laneItems[i];
-            const minGap = (prev.h + curr.h) * 0.5 + laneVerticalGap;
-            if (curr.y < prev.y + minGap) {
-              curr.y = prev.y + minGap;
-            }
-          }
-        }
 
         physicsWishes.forEach(a => {
           if (a.w === 0) return;
           const inWarmup = nowTs - a.bornAt < wishWarmupMs;
-          a.x = clampX(a.x, a.w);
-          const smooth = inWarmup ? 0.2 : 0.28;
+          const smooth = inWarmup ? 0.3 : 0.15;
+          
           a.renderX += (a.x - a.renderX) * smooth;
           a.renderY += (a.y - a.renderY) * smooth;
-          a.renderX = clampX(a.renderX, a.w);
-          a.el.style.transform = `translate3d(${a.renderX}px, ${a.renderY}px, 0)`;
+          
+          let safeW = a.w * a.scale;
+          let maxX = Math.max(margin, W - safeW - margin);
+          a.renderX = Math.max(margin, Math.min(maxX, a.renderX));
+          
+          a.el.style.transform = `translate3d(${a.renderX}px, ${a.renderY}px, 0) scale(${a.scale})`;
         });
       }
 
@@ -1072,7 +991,6 @@
         introScene.classList.add('gone');
         dropScene.classList.add('show');
 
-        // Chờ đúng 0.3 giây sau khi vào không gian mới thả chữ
         setTimeout(() => {
           initFloatingWishes();
         }, textDelayMs);
